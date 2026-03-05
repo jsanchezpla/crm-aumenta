@@ -13,15 +13,29 @@ const Sidebar = ({ vistaActiva, setVistaActiva, handleLogout }) => {
 
   return (
     <aside className="w-64 bg-[#40269A] text-white flex flex-col shadow-2xl z-10 shrink-0">
-      <div className="p-8 text-3xl font-black border-b border-[#C49DFF]/30 tracking-widest text-center font-playpen">
+      <div className=" pt-8 pb-4 text-3xl font-black border-b border-[#C49DFF]/30 tracking-widest text-center font-playpen">
         CRM<span className="text-[#FF0188]">.</span>
+        <a
+          href="https://salamandrasolutions.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex flex-col items-center justify-center gap-1.5 group cursor-pointer"
+        >
+          <span className="text-[0.525rem] text-gray-400 font-bold uppercase tracking-widest group-hover:text-gray-500 transition-colors">
+            Desarrollado por
+          </span>
+          <span className="text-[0.725rem] font-black text-gray-300 group-hover:text-[#40269A] transition-colors duration-300">
+            Salamandra Solutions
+          </span>
+        </a>
       </div>
+
       <nav className="flex-1 p-6 space-y-4 text-sm tracking-wide">
         <div
           onClick={() => setVistaActiva("estadisticas")}
           className={getMenuClass("estadisticas")}
         >
-          Estadísticas
+          Inicio
         </div>
         <div onClick={() => setVistaActiva("leads")} className={getMenuClass("leads")}>
           Leads (Landing)
@@ -31,6 +45,9 @@ const Sidebar = ({ vistaActiva, setVistaActiva, handleLogout }) => {
         </div>
         <div onClick={() => setVistaActiva("ventas")} className={getMenuClass("ventas")}>
           Historial Ventas
+        </div>
+        <div onClick={() => setVistaActiva("material")} className={getMenuClass("material")}>
+          Ventas Material
         </div>
       </nav>
       <div className="p-6 border-t border-[#C49DFF]/30">

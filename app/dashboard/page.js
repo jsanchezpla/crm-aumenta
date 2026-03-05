@@ -80,15 +80,6 @@ export default function Dashboard() {
   }
 
   // --- LÓGICA DE PROCESAMIENTO PARA ALUMNOS ---
-  let alumnosProcesados = alumnos.filter((a) => {
-    const term = busqueda.toLowerCase();
-    return (
-      a.nombre.toLowerCase().includes(term) ||
-      a.apellidos.toLowerCase().includes(term) ||
-      a.username.toLowerCase().includes(term) ||
-      a.email.toLowerCase().includes(term)
-    );
-  });
 
   if (ordenColumna && vistaActiva === "alumnos") {
     alumnosProcesados.sort((a, b) => {
@@ -118,6 +109,38 @@ export default function Dashboard() {
       return 0;
     });
   }
+
+  // 1. Estado para guardar qué empresa hemos seleccionado en el desplegable
+  const [filtroEmpresa, setFiltroEmpresa] = useState("");
+
+  // 2. Extraer empresas únicas usando el campo 'profesion' cuando son 'Empresa'
+  // (Nota: Usamos a.perfil o a.tipoPerfil dependiendo de cómo lo mande tu API)
+  const empresasUnicas = [
+    ...new Set(
+      alumnos
+        .filter((a) => (a.perfil === "Empresa" || a.tipoPerfil === "Empresa") && a.profesion)
+        .map((a) => a.profesion)
+    ),
+  ];
+
+  // 3. Lógica de filtrado combinada (Texto + Desplegable)
+  let alumnosProcesados = alumnos.filter((a) => {
+    // Filtro de texto (nombre, email, etc.)
+    const term = (busqueda || "").toLowerCase();
+    const coincideTexto =
+      a.nombre?.toLowerCase().includes(term) ||
+      a.email?.toLowerCase().includes(term) ||
+      a.apellidos?.toLowerCase().includes(term);
+
+    // Filtro de empresa: Si el desplegable está vacío, pasan todos.
+    // Si tiene algo, el alumno DEBE ser de empresa y su profesión coincidir.
+    const esEmpresa = a.perfil === "Empresa" || a.tipoPerfil === "Empresa";
+    const coincideEmpresa = filtroEmpresa === "" || (esEmpresa && a.profesion === filtroEmpresa);
+
+    return coincideTexto && coincideEmpresa;
+  });
+
+  // (Aquí debajo mantienes tu código para ordenar columnas si lo tenías)
 
   // --- LÓGICA DE PROCESAMIENTO PARA LEADS ---
   let leadsProcesados = leads.filter((l) => {
@@ -158,16 +181,28 @@ export default function Dashboard() {
     });
   }
 
-  const actualizarEstadoLead = (leadId, nuevoEstado) => {
-    // Recorremos la lista y modificamos solo el lead que coincide con el ID
-    const leadsActualizados = leads.map((lead) =>
-      lead.id === leadId ? { ...lead, estado: nuevoEstado } : lead
-    );
-    // Guardamos la nueva lista en el estado
-    setLeads(leadsActualizados);
+  const handleUpdateEstado = async (id, nuevoEstado) => {
+    // 1. ACTUALIZACIÓN OPTIMISTA: Cambiamos el estado en pantalla al instante
+    // para que el usuario no note ningún "lag" mientras el servidor piensa.
+    setLeads(leads.map((lead) => (lead.id === id ? { ...lead, estado: nuevoEstado } : lead)));
 
-    // Si tienes el modal abierto, actualizamos también el lead seleccionado para que cambie en tiempo real
-    setLeadSeleccionado((prev) => ({ ...prev, estado: nuevoEstado }));
+    // 2. ACTUALIZACIÓN REAL (Base de datos)
+    try {
+      const response = await fetch(`/api/leads/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ estado: nuevoEstado }),
+      });
+
+      if (!response.ok) {
+        console.error("Error al guardar en la base de datos");
+        // Opcional: Si falla, podrías volver a poner el estado anterior aquí
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+    }
   };
 
   const manejarOrden = (columna) => {
@@ -321,6 +356,9 @@ export default function Dashboard() {
                 FlechaOrden={FlechaOrden}
                 setAlumnoSeleccionado={setAlumnoSeleccionado}
                 getBadgeColor={getBadgeColor}
+                filtroEmpresa={filtroEmpresa}
+                setFiltroEmpresa={setFiltroEmpresa}
+                empresasUnicas={empresasUnicas}
               />
             )}
 
@@ -357,7 +395,7 @@ export default function Dashboard() {
         lead={leadSeleccionado}
         onClose={() => setLeadSeleccionado(null)}
         getBadgeColor={getBadgeColor}
-        onUpdateEstado={actualizarEstadoLead}
+        onUpdateEstado={handleUpdateEstado}
       />
 
       {/* ========================================================= */}

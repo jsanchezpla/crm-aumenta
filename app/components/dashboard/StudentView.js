@@ -7,6 +7,9 @@ export default function AlumnosView({
   FlechaOrden,
   setAlumnoSeleccionado,
   getBadgeColor,
+  filtroEmpresa,
+  setFiltroEmpresa,
+  empresasUnicas,
 }) {
   return (
     <div className="animate-fadeIn">
@@ -14,13 +17,35 @@ export default function AlumnosView({
         <p className="text-gray-500 font-medium">
           Usuarios registrados en la plataforma con perfil completo.
         </p>
-        <div className="relative w-full md:w-80">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <select
+            value={filtroEmpresa}
+            onChange={(e) => setFiltroEmpresa(e.target.value)}
+            // Cambiamos sm:w-64 por sm:w-48 (más estrecho) o sm:w-1/4
+            className="sm:w-58 px-5 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2340269A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 1rem center",
+              backgroundSize: "1.2em 1.2em",
+              paddingRight: "2.5rem",
+            }}
+          >
+            <option value="">Todas las empresas</option>
+            {empresasUnicas.map((empresa, idx) => (
+              <option key={idx} value={empresa}>
+                {empresa}
+              </option>
+            ))}
+          </select>
+
           <input
             type="text"
-            placeholder="Buscar nombre, email, usuario..."
+            placeholder="Buscar por nombre o email..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
+            // Mantenemos flex-1 y añadimos w-full por si acaso
+            className="flex-1 min-w-72 px-5 py-3 rounded-xl border-2 border-gray-100 focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] outline-none transition-all font-medium text-gray-700 placeholder:text-gray-400"
           />
         </div>
       </div>

@@ -15,6 +15,8 @@ const LeadSchema = new mongoose.Schema(
       enum: ["Nuevo", "Contactado", "Descartado"],
       default: "Nuevo",
     },
+    telefono: { type: String, default: "No proporcionado" },
+    fecha: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

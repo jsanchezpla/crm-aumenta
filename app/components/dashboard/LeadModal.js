@@ -45,13 +45,46 @@ export default function LeadModal({ lead, onClose, getBadgeColor, onUpdateEstado
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                 Email
               </label>
-              <p className="text-[#40269A] font-bold text-lg">{lead.email}</p>
+              <div className="flex items-center gap-2 mt-1">
+                {/* El enlace mailto original */}
+                <a
+                  href={`mailto:${lead.email}`}
+                  className="text-lg font-bold text-[#40269A] hover:text-[#FF0188] hover:underline decoration-2 underline-offset-4 transition-all"
+                >
+                  {lead.email}
+                </a>
+
+                {/* NUEVO: Botón de copiar al portapapeles */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault(); // Evita que haga cosas raras
+                    navigator.clipboard.writeText(lead.email);
+                  }}
+                  className="p-1.5 text-gray-400 hover:text-[#FF0188] hover:bg-[#FFDAED] rounded-md transition-all group"
+                  title="Copiar email"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div>
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                 Teléfono
               </label>
-              <p className="text-[#40269A] font-medium text-lg">{lead.telefono}</p>
+              <p className="text-[#40269A] font-medium text-lg mt-1">{lead.telefono}</p>
             </div>
           </div>
           <div className="space-y-6">
@@ -77,7 +110,24 @@ export default function LeadModal({ lead, onClose, getBadgeColor, onUpdateEstado
         </div>
 
         <div className="bg-gray-50 p-4 lg:px-10 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-4">
-          {/* Si es NUEVO, mostramos el botón para contactar */}
+          {/* CAMBIO 2: Botón de Email dedicado, empujado a la izquierda con sm:mr-auto */}
+          <a
+            href={`mailto:${lead.email}`}
+            className="sm:mr-auto flex items-center justify-center gap-2 text-white bg-[#40269A] px-6 py-3 rounded-xl font-bold hover:bg-[#2c1a6b] transition-colors shadow-md"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+            Escribir Email
+          </a>
+
+          {/* Botones de Estado originales */}
           {lead.estado === "Nuevo" && (
             <button
               onClick={() => {
@@ -90,7 +140,6 @@ export default function LeadModal({ lead, onClose, getBadgeColor, onUpdateEstado
             </button>
           )}
 
-          {/* Si ya está CONTACTADO, mostramos el botón para revertir el error */}
           {lead.estado === "Contactado" && (
             <button
               onClick={() => {
