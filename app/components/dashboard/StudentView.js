@@ -1,3 +1,5 @@
+import ExportButton from "../views/ExportButton";
+
 // Archivo: components/dashboard/AlumnosView.js
 export default function AlumnosView({
   busqueda,
@@ -10,6 +12,7 @@ export default function AlumnosView({
   filtroEmpresa,
   setFiltroEmpresa,
   empresasUnicas,
+  onExportar,
 }) {
   return (
     <div className="animate-fadeIn">
@@ -18,6 +21,7 @@ export default function AlumnosView({
           Usuarios registrados en la plataforma con perfil completo.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
+          <ExportButton onExportar={onExportar} />
           <select
             value={filtroEmpresa}
             onChange={(e) => setFiltroEmpresa(e.target.value)}

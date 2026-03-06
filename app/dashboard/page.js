@@ -9,6 +9,7 @@ import VentasView from "../components/dashboard/SealView";
 import StudentView from "../components/dashboard/StudentView";
 import LeadsView from "../components/dashboard/LeadsView";
 import StatsView from "../components/dashboard/StatsView";
+import { exportarAExcel } from "@/lib/exportExcel";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -22,6 +23,9 @@ export default function Dashboard() {
   const [busqueda, setBusqueda] = useState("");
   const [ordenColumna, setOrdenColumna] = useState(null);
   const [ordenAscendente, setOrdenAscendente] = useState(true);
+  const [filtroCursoVentas, setFiltroCursoVentas] = useState("");
+  const [filtroCursoLeads, setFiltroCursoLeads] = useState("");
+  const [filtroEmpresa, setFiltroEmpresa] = useState("");
 
   // Inicializar cargando basado en la presencia del token
   const [cargando, setCargando] = useState(
@@ -41,14 +45,22 @@ export default function Dashboard() {
 
   // --- LÓGICA DE PROCESAMIENTO PARA VENTAS ---
   let ventasProcesadas = ventas.filter((v) => {
-    const term = busqueda.toLowerCase();
-    return (
-      v.alumno.toLowerCase().includes(term) ||
-      v.curso.toLowerCase().includes(term) ||
-      v.importe.toLowerCase().includes(term) ||
-      v.fecha.toLowerCase().includes(term)
-    );
+    // 1. Filtro de Texto (Buscador general)
+    const term = (busqueda || "").toLowerCase();
+    const coincideTexto =
+      (v.alumno || "").toLowerCase().includes(term) ||
+      (v.curso || "").toLowerCase().includes(term) ||
+      (v.importe || "").toLowerCase().includes(term) ||
+      (v.fecha || "").toLowerCase().includes(term);
+
+    // 2. Filtro Desplegable (Exacto)
+    const coincideCursoVenta = filtroCursoVentas === "" || v.curso === filtroCursoVentas;
+
+    // 3. Tienen que cumplirse AMBAS condiciones
+    return coincideTexto && coincideCursoVenta;
   });
+
+  const cursosUnicosVentas = [...new Set(ventas.map((v) => v.curso).filter(Boolean))];
 
   if (ordenColumna && vistaActiva === "ventas") {
     ventasProcesadas.sort((a, b) => {
@@ -111,7 +123,6 @@ export default function Dashboard() {
   }
 
   // 1. Estado para guardar qué empresa hemos seleccionado en el desplegable
-  const [filtroEmpresa, setFiltroEmpresa] = useState("");
 
   // 2. Extraer empresas únicas usando el campo 'profesion' cuando son 'Empresa'
   // (Nota: Usamos a.perfil o a.tipoPerfil dependiendo de cómo lo mande tu API)
@@ -144,16 +155,21 @@ export default function Dashboard() {
 
   // --- LÓGICA DE PROCESAMIENTO PARA LEADS ---
   let leadsProcesados = leads.filter((l) => {
-    const term = busqueda.toLowerCase();
-    // Miramos si ALGUNO de los cursos de la lista coincide con la búsqueda
-    const coincideCurso = l.cursos.some((curso) => curso.toLowerCase().includes(term));
-    return (
-      l.nombre.toLowerCase().includes(term) ||
-      l.apellidos.toLowerCase().includes(term) ||
-      l.email.toLowerCase().includes(term) ||
-      coincideCurso
-    );
+    // 1. Filtro de Texto (Buscador general)
+    const term = (busqueda || "").toLowerCase();
+    const coincideTexto =
+      (l.nombre || "").toLowerCase().includes(term) ||
+      (l.apellidos || "").toLowerCase().includes(term) ||
+      (l.email || "").toLowerCase().includes(term);
+
+    // 2. Filtro Desplegable (Cursos en Leads es un array, así que usamos .includes)
+    const coincideCursoLead = filtroCursoLeads === "" || l.cursos.includes(filtroCursoLeads);
+
+    // 3. Tienen que cumplirse AMBAS condiciones
+    return coincideTexto && coincideCursoLead;
   });
+
+  const cursosUnicosLeads = [...new Set(leads.flatMap((l) => l.cursos).filter(Boolean))];
 
   if (ordenColumna && vistaActiva === "leads") {
     leadsProcesados.sort((a, b) => {
@@ -341,6 +357,10 @@ export default function Dashboard() {
                 FlechaOrden={FlechaOrden}
                 setLeadSeleccionado={setLeadSeleccionado}
                 getBadgeColor={getBadgeColor}
+                filtroCurso={filtroCursoLeads}
+                setFiltroCurso={setFiltroCursoLeads}
+                cursosUnicos={cursosUnicosLeads}
+                onExportar={() => exportarAExcel(leadsProcesados, "Leads_Aumenta", "leads")}
               />
             )}
 
@@ -359,6 +379,7 @@ export default function Dashboard() {
                 filtroEmpresa={filtroEmpresa}
                 setFiltroEmpresa={setFiltroEmpresa}
                 empresasUnicas={empresasUnicas}
+                onExportar={() => exportarAExcel(alumnosProcesados, "Alumnos_Aumenta", "alumnos")}
               />
             )}
 
@@ -373,6 +394,10 @@ export default function Dashboard() {
                 manejarOrden={manejarOrden}
                 FlechaOrden={FlechaOrden}
                 setVentaSeleccionada={setVentaSeleccionada}
+                filtroCurso={filtroCursoVentas}
+                setFiltroCurso={setFiltroCursoVentas}
+                cursosUnicos={cursosUnicosVentas}
+                onExportar={() => exportarAExcel(ventasProcesadas, "Ventas_Aumenta", "ventas")}
               />
             )}
           </div>

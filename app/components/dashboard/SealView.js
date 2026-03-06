@@ -1,3 +1,5 @@
+import ExportButton from "../views/ExportButton";
+
 // Archivo: components/dashboard/VentasView.js
 export default function VentasView({
   busqueda,
@@ -6,6 +8,11 @@ export default function VentasView({
   manejarOrden,
   FlechaOrden,
   setVentaSeleccionada,
+  // NUEVAS PROPIEDADES AÑADIDAS AQUÍ:
+  filtroCurso,
+  setFiltroCurso,
+  cursosUnicos,
+  onExportar,
 }) {
   return (
     <div className="animate-fadeIn">
@@ -15,18 +22,40 @@ export default function VentasView({
           Registro histórico de qué curso ha comprado cada usuario.
         </p>
 
-        <div className="relative w-full md:w-80">
+        {/* NUEVO CONTENEDOR FLEX CON SELECT E INPUT */}
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full md:w-auto">
+          <ExportButton onExportar={onExportar} />
+          <select
+            value={filtroCurso}
+            onChange={(e) => setFiltroCurso(e.target.value)}
+            className="sm:w-56 px-4 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2340269A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 1rem center",
+              backgroundSize: "1.2em 1.2em",
+              paddingRight: "2.5rem",
+            }}
+          >
+            <option value="">Todos los cursos</option>
+            {cursosUnicos?.map((curso, idx) => (
+              <option key={idx} value={curso}>
+                {curso}
+              </option>
+            ))}
+          </select>
+
           <input
             type="text"
             placeholder="Buscar alumno, curso, fecha..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
+            className="flex-1 min-w-72 px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
           />
         </div>
       </div>
 
-      {/* TABLA DE VENTAS */}
+      {/* TABLA DE VENTAS (Igual que antes) */}
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
           <thead>
