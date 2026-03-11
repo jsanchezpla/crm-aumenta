@@ -10,6 +10,9 @@ import StudentView from "../components/dashboard/StudentView";
 import LeadsView from "../components/dashboard/LeadsView";
 import StatsView from "../components/dashboard/StatsView";
 import { exportarAExcel } from "@/lib/exportExcel";
+import MaterialView from "../components/dashboard/MaterialView";
+import MaterialModal from "../components/dashboard/MaterialModal";
+import ImportarEmpresaModal from "../components/dashboard/ImportarEmpresaModal";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -20,12 +23,15 @@ export default function Dashboard() {
   const [alumnoSeleccionado, setAlumnoSeleccionado] = useState(null);
   const [leadSeleccionado, setLeadSeleccionado] = useState(null);
   const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
+  const [materialSeleccionado, setMaterialSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState("");
   const [ordenColumna, setOrdenColumna] = useState(null);
   const [ordenAscendente, setOrdenAscendente] = useState(true);
   const [filtroCursoVentas, setFiltroCursoVentas] = useState("");
   const [filtroCursoLeads, setFiltroCursoLeads] = useState("");
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
 
   // Inicializar cargando basado en la presencia del token
   const [cargando, setCargando] = useState(
@@ -42,6 +48,7 @@ export default function Dashboard() {
   const [leads, setLeads] = useState([]);
   const [alumnos, setAlumnos] = useState([]);
   const [ventas, setVentas] = useState([]);
+  const [materiales, setMateriales] = useState([]);
 
   // --- LÓGICA DE PROCESAMIENTO PARA VENTAS ---
   let ventasProcesadas = ventas.filter((v) => {
@@ -93,35 +100,6 @@ export default function Dashboard() {
 
   // --- LÓGICA DE PROCESAMIENTO PARA ALUMNOS ---
 
-  if (ordenColumna && vistaActiva === "alumnos") {
-    alumnosProcesados.sort((a, b) => {
-      let vA, vB;
-      switch (ordenColumna) {
-        case "usuario":
-          vA = a.username.toLowerCase();
-          vB = b.username.toLowerCase();
-          break;
-        case "nombre":
-          vA = a.nombre.toLowerCase();
-          vB = b.nombre.toLowerCase();
-          break;
-        case "perfil":
-          vA = (a.perfil || "").toLowerCase();
-          vB = (b.perfil || "").toLowerCase();
-          break;
-        case "activo":
-          vA = a.activo ? 1 : 0;
-          vB = b.activo ? 1 : 0;
-          break;
-        default:
-          return 0;
-      }
-      if (vA < vB) return ordenAscendente ? -1 : 1;
-      if (vA > vB) return ordenAscendente ? 1 : -1;
-      return 0;
-    });
-  }
-
   // 1. Estado para guardar qué empresa hemos seleccionado en el desplegable
 
   // 2. Extraer empresas únicas usando el campo 'profesion' cuando son 'Empresa'
@@ -151,7 +129,34 @@ export default function Dashboard() {
     return coincideTexto && coincideEmpresa;
   });
 
-  // (Aquí debajo mantienes tu código para ordenar columnas si lo tenías)
+  if (ordenColumna && vistaActiva === "alumnos") {
+    alumnosProcesados.sort((a, b) => {
+      let vA, vB;
+      switch (ordenColumna) {
+        case "usuario":
+          vA = a.username.toLowerCase();
+          vB = b.username.toLowerCase();
+          break;
+        case "nombre":
+          vA = a.nombre.toLowerCase();
+          vB = b.nombre.toLowerCase();
+          break;
+        case "perfil":
+          vA = (a.perfil || "").toLowerCase();
+          vB = (b.perfil || "").toLowerCase();
+          break;
+        case "activo":
+          vA = a.activo ? 1 : 0;
+          vB = b.activo ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+      if (vA < vB) return ordenAscendente ? -1 : 1;
+      if (vA > vB) return ordenAscendente ? 1 : -1;
+      return 0;
+    });
+  }
 
   // --- LÓGICA DE PROCESAMIENTO PARA LEADS ---
   let leadsProcesados = leads.filter((l) => {
@@ -197,6 +202,74 @@ export default function Dashboard() {
     });
   }
 
+  // --- LÓGICA DE PROCESAMIENTO PARA MATERIALES ---
+
+  // TRUCO PRO: Si 'materiales' viene vacío de la base de datos o aún no ha cargado, usamos []
+  const listadoMateriales = materiales || [];
+
+  // Ahora usamos 'listadoMateriales' que SIEMPRE será un array (seguro al 100%)
+  const categoriasUnicas = [...new Set(listadoMateriales.map((m) => m.categoria).filter(Boolean))];
+
+  let materialesProcesados = listadoMateriales.filter((m) => {
+    // 1. Filtro de Texto (Buscador general)
+    const term = (busqueda || "").toLowerCase();
+
+    const nombreDelAlumno = m.alumno?.nombre || m.alumnoNombre || "";
+
+    const coincideTexto =
+      (m.nombreMaterial || "").toLowerCase().includes(term) ||
+      (m.categoria || "").toLowerCase().includes(term) ||
+      nombreDelAlumno.toLowerCase().includes(term) ||
+      (m.precio?.toString() || "").includes(term);
+
+    // 2. Filtro Desplegable (Exacto)
+    const coincideCategoria = filtroCategoria === "" || m.categoria === filtroCategoria;
+
+    // 3. Tienen que cumplirse AMBAS condiciones
+    return coincideTexto && coincideCategoria;
+  });
+
+  // --- LÓGICA DE ORDENAMIENTO ---
+  if (ordenColumna && vistaActiva === "materiales") {
+    materialesProcesados.sort((a, b) => {
+      let vA, vB;
+
+      switch (ordenColumna) {
+        case "nombreMaterial":
+          vA = (a.nombreMaterial || "").toLowerCase();
+          vB = (b.nombreMaterial || "").toLowerCase();
+          break;
+        case "categoria":
+          vA = (a.categoria || "").toLowerCase();
+          vB = (b.categoria || "").toLowerCase();
+          break;
+        case "alumnoNombre":
+          // Cuidado con cómo viene de la base de datos
+          vA = (a.alumno?.nombre || a.alumnoNombre || "").toLowerCase();
+          vB = (b.alumno?.nombre || b.alumnoNombre || "").toLowerCase();
+          break;
+
+        // NUEVO: Ordenar por PRECIO (como son números, no usamos toLowerCase)
+        case "precio":
+          vA = Number(a.precio || 0);
+          vB = Number(b.precio || 0);
+          break;
+
+        // NUEVO: Ordenar por FECHA (las convertimos a milisegundos para compararlas matemáticamente)
+        case "fechaCompra":
+          vA = new Date(a.fechaCompra).getTime();
+          vB = new Date(b.fechaCompra).getTime();
+          break;
+
+        default:
+          return 0;
+      }
+
+      if (vA < vB) return ordenAscendente ? -1 : 1;
+      if (vA > vB) return ordenAscendente ? 1 : -1;
+      return 0;
+    });
+  }
   const handleUpdateEstado = async (id, nuevoEstado) => {
     // 1. ACTUALIZACIÓN OPTIMISTA: Cambiamos el estado en pantalla al instante
     // para que el usuario no note ningún "lag" mientras el servidor piensa.
@@ -271,6 +344,7 @@ export default function Dashboard() {
           setLeads(data.leads);
           setAlumnos(data.alumnos);
           setVentas(data.ventas);
+          setMateriales(data.materiales);
         } else {
           // Si el token ha caducado o hay un error, le echamos al login
           if (res.status === 401) {
@@ -380,6 +454,7 @@ export default function Dashboard() {
                 setFiltroEmpresa={setFiltroEmpresa}
                 empresasUnicas={empresasUnicas}
                 onExportar={() => exportarAExcel(alumnosProcesados, "Alumnos_Aumenta", "alumnos")}
+                setMostrarModalImportar={setMostrarModalImportar}
               />
             )}
 
@@ -398,6 +473,26 @@ export default function Dashboard() {
                 setFiltroCurso={setFiltroCursoVentas}
                 cursosUnicos={cursosUnicosVentas}
                 onExportar={() => exportarAExcel(ventasProcesadas, "Ventas_Aumenta", "ventas")}
+              />
+            )}
+
+            {/* ========================================================= */}
+            {/* VISTA MATERIALES COMPLETADA CON BUSCADOR Y ORDENACIÓN */}
+            {/* ========================================================= */}
+            {vistaActiva === "materiales" && (
+              <MaterialView
+                busqueda={busqueda}
+                setBusqueda={setBusqueda}
+                materialesProcesados={materialesProcesados}
+                manejarOrden={manejarOrden}
+                FlechaOrden={FlechaOrden}
+                setMaterialSeleccionado={setMaterialSeleccionado}
+                filtroCategoria={filtroCategoria}
+                setFiltroCategoria={setFiltroCategoria}
+                categoriasUnicas={categoriasUnicas}
+                onExportar={() =>
+                  exportarAExcel(materialesProcesados, "Materiales_Aumenta", "materiales")
+                }
               />
             )}
           </div>
@@ -427,6 +522,24 @@ export default function Dashboard() {
       {/* VENTANA MODAL 3: RECIBO DE VENTA */}
       {/* ========================================================= */}
       <SealModal seal={ventaSeleccionada} onClose={() => setVentaSeleccionada(null)} />
+
+      {/* ========================================================= */}
+      {/* VENTANA MODAL 3: FICHA DE MATERIAL */}
+      {/* ========================================================= */}
+      <MaterialModal
+        material={materialSeleccionado}
+        onClose={() => setMaterialSeleccionado(null)}
+      />
+
+      {mostrarModalImportar && (
+        <ImportarEmpresaModal
+          empresasExistentes={empresasUnicas}
+          onClose={() => setMostrarModalImportar(false)}
+          onImportarExito={() => {
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }

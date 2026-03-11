@@ -24,7 +24,7 @@ const Sidebar = ({ vistaActiva, setVistaActiva, handleLogout }) => {
           <span className="text-[0.525rem] text-gray-400 font-bold uppercase tracking-widest group-hover:text-gray-500 transition-colors">
             Desarrollado por
           </span>
-          <span className="text-[0.725rem] font-black text-gray-300 group-hover:text-[#40269A] transition-colors duration-300">
+          <span className="text-[0.725rem] font-black text-gray-300 group-hover:text-[#FF0188] transition-colors duration-300">
             Salamandra Solutions
           </span>
         </a>
@@ -38,16 +38,16 @@ const Sidebar = ({ vistaActiva, setVistaActiva, handleLogout }) => {
           Inicio
         </div>
         <div onClick={() => setVistaActiva("leads")} className={getMenuClass("leads")}>
-          Leads (Landing)
+          Leads
         </div>
         <div onClick={() => setVistaActiva("alumnos")} className={getMenuClass("alumnos")}>
-          Alumnos Activos
+          Clientes
         </div>
         <div onClick={() => setVistaActiva("ventas")} className={getMenuClass("ventas")}>
-          Historial Ventas
+          Ventas cursos
         </div>
-        <div onClick={() => setVistaActiva("material")} className={getMenuClass("material")}>
-          Ventas Material
+        <div onClick={() => setVistaActiva("materiales")} className={getMenuClass("materiales")}>
+          Ventas material
         </div>
       </nav>
       <div className="p-6 border-t border-[#C49DFF]/30">

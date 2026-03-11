@@ -3,13 +3,13 @@ import mongoose from "mongoose";
 const StudentSchema = new mongoose.Schema(
   {
     // Datos de cuenta
-    username: { type: String, required: true, unique: true },
+    username: { type: String },
     email: { type: String, required: true, unique: true },
     activo: { type: Boolean, default: true },
 
     // Datos personales
-    nombre: { type: String, required: true },
-    apellidos: { type: String, required: true },
+    nombre: { type: String },
+    apellidos: { type: String },
     telefono: { type: String, default: "No proporcionado" }, // Opcional
 
     // Datos de facturación / envío

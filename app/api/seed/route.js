@@ -3,15 +3,17 @@ import dbConnect from "@/lib/dbConnect";
 import Lead from "@/models/Leads";
 import Student from "@/models/Student";
 import Purchase from "@/models/Purchase";
+import Material from "@/models/Material"; // <-- 1. NUEVO IMPORT
 
 export async function GET() {
   try {
     await dbConnect();
 
-    // 1. Limpieza total de las 3 colecciones
+    // 1. Limpieza total de las 4 colecciones
     await Lead.deleteMany({});
     await Student.deleteMany({});
     await Purchase.deleteMany({});
+    await Material.deleteMany({}); // <-- 2. LIMPIAMOS MATERIALES TAMBIÉN
 
     // 2. Preparamos Leads y Alumnos
     const leadsMocks = [
@@ -80,7 +82,7 @@ export async function GET() {
     const idMarcos = alumnosCreados.find((a) => a.email === "marcos@tech.es")._id;
     const idSofia = alumnosCreados.find((a) => a.email === "sofia@estudio.com")._id;
 
-    // 5. Declaramos las ventas usando los IDs reales y los nombres de tu Schema
+    // 5. Declaramos las ventas de cursos
     const ventasMocks = [
       {
         fechaCompra: new Date("2026-03-02"),
@@ -107,12 +109,67 @@ export async function GET() {
         precio: 300,
       },
     ];
-
-    // 6. Finalmente, insertamos las ventas
     await Purchase.insertMany(ventasMocks);
 
+    // --- 6. NUEVO: MOCKS DE MATERIALES EXTRAÍDOS DE TU DISEÑO ---
+    // Usamos los IDs de Marcos y Sofía para simular que han comprado estas descargas
+    const materialesMocks = [
+      {
+        alumno: idMarcos,
+        nombreMaterial: "Marcapáginas del Día del Libro",
+        categoria: "Fechas señaladas",
+        precio: 5,
+        fechaCompra: new Date("2026-03-05"),
+      },
+      {
+        alumno: idSofia,
+        nombreMaterial: "Materiales de preescritura",
+        categoria: "Área de aprendizaje",
+        precio: 15,
+        fechaCompra: new Date("2026-03-06"),
+      },
+      {
+        alumno: idMarcos,
+        nombreMaterial: "Dificultades de aprendizaje",
+        categoria: "Área de aprendizaje",
+        precio: 20,
+        fechaCompra: new Date("2026-03-07"),
+      },
+      {
+        alumno: idSofia,
+        nombreMaterial: "Becas ACNEE y ayudas",
+        categoria: "Becas y ayudas",
+        precio: 0, // Puede ser gratuito/lead magnet
+        fechaCompra: new Date("2026-03-08"),
+      },
+      {
+        alumno: idMarcos,
+        nombreMaterial: "Registro de conducta",
+        categoria: "Conducta",
+        precio: 12,
+        fechaCompra: new Date("2026-03-09"),
+      },
+      {
+        alumno: idSofia,
+        nombreMaterial: "Apoyos visuales",
+        categoria: "Conducta",
+        precio: 10,
+        fechaCompra: new Date("2026-03-10"),
+      },
+      {
+        alumno: idMarcos,
+        nombreMaterial: "Material de Pascua",
+        categoria: "Fechas señaladas",
+        precio: 8,
+        fechaCompra: new Date("2026-03-11"),
+      },
+    ];
+
+    // Insertamos los materiales en la base de datos
+    await Material.insertMany(materialesMocks);
+
     return NextResponse.json(
-      { mensaje: "✅ Semilla plantada con éxito. IDs relacionales creados correctamente." },
+      { mensaje: "✅ Semilla plantada con éxito. Leads, Alumnos, Compras y Materiales creados." },
       { status: 200 }
     );
   } catch (error) {

@@ -14,8 +14,8 @@ export default function StudentModal({ alumno, onClose, getBadgeColor }) {
         <div className="bg-[#fcfaff] p-8 lg:p-10 border-b border-gray-100">
           <div className="flex items-center gap-6">
             <div className="w-24 h-24 rounded-full bg-[#DEC7FF] text-[#40269A] flex items-center justify-center text-4xl font-black shadow-inner">
-              {alumno.nombre.charAt(0)}
-              {alumno.apellidos.charAt(0)}
+              {(alumno.nombre || alumno.email || "A").charAt(0)}
+              {(alumno.apellidos || "").charAt(0)}
             </div>
             <div>
               <h2 className="text-3xl lg:text-4xl font-black text-[#40269A]">

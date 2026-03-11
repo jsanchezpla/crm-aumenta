@@ -4,23 +4,30 @@ import dbConnect from "@/lib/dbConnect";
 import Lead from "@/models/Leads";
 import Student from "@/models/Student";
 import Purchase from "@/models/Purchase";
+import Material from "@/models/Material"; // 1. Importamos el nuevo modelo
 
 export async function GET(request) {
   try {
     // 1. Conectamos a la base de datos
     await dbConnect();
 
-    // Extraemos Leads y Alumnos igual que antes
+    // Extraemos Leads y Alumnos
     const leadsDB = await Lead.find({}).sort({ createdAt: -1 }).lean();
     const alumnosDB = await Student.find({}).sort({ createdAt: -1 }).lean();
 
-    // ATENCIÓN AQUÍ: Usamos populate para traer el nombre y apellidos del alumno referenciado
+    // Extraemos Ventas (Cursos)
     const ventasDB = await Purchase.find({})
       .populate("alumno", "nombre apellidos")
       .sort({ createdAt: -1 })
       .lean();
 
-    // Formateamos los datos para que el frontend no se rompa y reciba exactamente lo que espera
+    // 2. EXTRAEMOS LOS MATERIALES (Usamos populate igual que en ventas)
+    const materialesDB = await Material.find({})
+      .populate("alumno", "nombre apellidos")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Formateamos los datos para que el frontend no se rompa
     const leads = leadsDB.map((l) => ({ ...l, id: l._id.toString() }));
     const alumnos = alumnosDB.map((a) => ({
       ...a,
@@ -29,7 +36,6 @@ export async function GET(request) {
     }));
 
     const ventas = ventasDB.map((v) => {
-      // 1. Formateamos la fecha para que se vea como "02 mar 2026"
       const fechaObj = new Date(v.fechaCompra);
       const fechaFormateada = fechaObj.toLocaleDateString("es-ES", {
         day: "2-digit",
@@ -40,17 +46,39 @@ export async function GET(request) {
       return {
         ...v,
         id: v._id.toString(),
-        alumno: v.alumno ? `${v.alumno.nombre} ${v.alumno.apellidos}` : "Alumno Borrado",
+        alumno: v.alumno
+          ? `${v.alumno.nombre} ${v.alumno.apellidos || ""}`.trim()
+          : "Alumno Borrado",
         curso: v.nombreCurso,
-        // 2. Transformamos el "precio" de la BD al "importe" del frontend añadiendo el €
         importe: `${v.precio}€`,
-        // 3. Pasamos la fecha ya bonita
         fecha: fechaFormateada,
       };
     });
 
-    // 4. Enviamos el paquete completo al Dashboard
-    return NextResponse.json({ leads, alumnos, ventas }, { status: 200 });
+    // 3. FORMATEAMOS LOS MATERIALES
+    const materiales = materialesDB.map((m) => {
+      // Formateamos la fecha al estilo español
+      const fechaObj = new Date(m.fechaCompra);
+      const fechaFormateada = fechaObj.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+
+      return {
+        ...m,
+        id: m._id.toString(),
+        // Extraemos el nombre completo del alumno y lo guardamos en alumnoNombre
+        // por si alguna vez el alumno ha sido borrado de la BD, que no nos dé error
+        alumnoNombre: m.alumno
+          ? `${m.alumno.nombre} ${m.alumno.apellidos || ""}`.trim()
+          : "Alumno Borrado",
+        fechaCompraStr: fechaFormateada,
+      };
+    });
+
+    // 4. Enviamos el paquete completo al Dashboard INCLUYENDO LOS MATERIALES
+    return NextResponse.json({ leads, alumnos, ventas, materiales }, { status: 200 });
   } catch (error) {
     console.error("Error al obtener datos del Dashboard:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

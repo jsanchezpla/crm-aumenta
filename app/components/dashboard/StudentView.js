@@ -13,6 +13,7 @@ export default function AlumnosView({
   setFiltroEmpresa,
   empresasUnicas,
   onExportar,
+  setMostrarModalImportar,
 }) {
   return (
     <div className="animate-fadeIn">
@@ -21,6 +22,26 @@ export default function AlumnosView({
           Usuarios registrados en la plataforma con perfil completo.
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => setMostrarModalImportar(true)}
+            className="flex items-center justify-center gap-2 bg-[#40269A] hover:bg-[#2c1a6b] text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0 cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Importar por Empresa
+          </button>
           <ExportButton onExportar={onExportar} />
           <select
             value={filtroEmpresa}
@@ -96,8 +117,13 @@ export default function AlumnosView({
                     <div className="font-bold text-[#40269A] truncate">@{alumno.username}</div>
                     <div className="text-xs text-gray-400 truncate">{alumno.email}</div>
                   </td>
-                  <td className="p-4 text-gray-600 font-medium truncate">
-                    {alumno.nombre} {alumno.apellidos}
+                  <td className="p-4">
+                    <div className="font-bold text-[#40269A]">
+                      {/* Si no hay nombre ni apellidos, mostramos "Sin nombre" o un guion */}
+                      {alumno.nombre || alumno.apellidos
+                        ? `${alumno.nombre || ""} ${alumno.apellidos || ""}`.trim()
+                        : "—"}
+                    </div>
                   </td>
                   <td className="p-4">
                     <span

@@ -2,7 +2,7 @@ export default function ExportarButton({ onExportar }) {
   return (
     <button
       onClick={onExportar}
-      className="flex items-center justify-center gap-2 bg-[#107c41] hover:bg-[#0c5e31] text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0"
+      className="flex items-center justify-center gap-2 bg-[#107c41] hover:bg-[#0c5e31] text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0 cursor-pointer"
       title="Exportar a Excel"
     >
       <svg
