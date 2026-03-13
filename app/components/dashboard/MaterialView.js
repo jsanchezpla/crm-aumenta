@@ -15,19 +15,20 @@ export default function MaterialView({
   return (
     <div className="animate-fadeIn">
       {/* CABECERA Y BUSCADOR */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 w-full">
         <p className="text-gray-500 font-medium">
           Registro histórico de venta de materiales, plantillas y recursos.
         </p>
 
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full md:w-auto">
-          {/* BOTÓN EXPORTAR */}
-          <ExportButton onExportar={onExportar} />
-          {/* FILTRO DE CATEGORÍAS */}
+        <div className="flex flex-col lg:flex-row gap-3 w-full md:w-auto">
+          <div className="w-full lg:w-auto flex [&>button]:w-full">
+            <ExportButton onExportar={onExportar} />
+          </div>
+
           <select
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
-            className="sm:w-56 px-4 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
+            className="w-full lg:w-56 px-4 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2340269A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
               backgroundRepeat: "no-repeat",
@@ -44,21 +45,21 @@ export default function MaterialView({
             ))}
           </select>
 
-          {/* BUSCADOR DE TEXTO */}
           <input
             type="text"
             placeholder="Buscar material o alumno..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 min-w-72 px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
+            className="w-full flex-1 lg:min-w-72 px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
           />
         </div>
       </div>
 
-      {/* TABLA DE MATERIALES */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
-        <table className="w-full text-left border-collapse table-fixed min-w-[900px]">
-          <thead>
+      {/* TABLA RESPONSIVA: En móvil se vuelve "Tarjetas" */}
+      <div className="rounded-xl lg:border lg:border-gray-200">
+        <table className="w-full text-left border-collapse block lg:table">
+          {/* Ocultamos thead en móvil */}
+          <thead className="hidden lg:table-header-group">
             <tr className="bg-[#fcfaff] text-[#40269A] border-b border-gray-200 select-none">
               <th
                 onClick={() => manejarOrden("fechaCompra")}
@@ -68,19 +69,19 @@ export default function MaterialView({
               </th>
               <th
                 onClick={() => manejarOrden("alumnoNombre")}
-                className="p-4 font-black text-sm uppercase w-[25%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
+                className="p-4 font-black text-sm uppercase w-[20%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
               >
                 Alumno <FlechaOrden columna="alumnoNombre" />
               </th>
               <th
                 onClick={() => manejarOrden("nombreMaterial")}
-                className="p-4 font-black text-sm uppercase w-[30%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
+                className="p-4 font-black text-sm uppercase w-[25%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
               >
                 Material <FlechaOrden columna="nombreMaterial" />
               </th>
               <th
                 onClick={() => manejarOrden("categoria")}
-                className="p-4 font-black text-sm uppercase w-[15%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
+                className="p-4 font-black text-sm uppercase w-[20%] cursor-pointer hover:bg-[#DEC7FF]/20 transition-colors"
               >
                 Categoría <FlechaOrden columna="categoria" />
               </th>
@@ -93,40 +94,75 @@ export default function MaterialView({
               <th className="p-4 font-black text-sm uppercase w-[10%] text-right">Acción</th>
             </tr>
           </thead>
-          <tbody>
+
+          <tbody className="block lg:table-row-group">
             {materialesProcesados.length > 0 ? (
               materialesProcesados.map((item) => (
                 <tr
                   key={item._id || item.id}
-                  className="border-b border-gray-100 hover:bg-[#fcfaff] transition-colors"
+                  // En móvil, cada fila es una "tarjeta" (block), con borde y sombra. En PC, fila normal.
+                  className="block lg:table-row bg-white mb-4 lg:mb-0 border border-gray-200 lg:border-b lg:border-gray-100 rounded-xl lg:rounded-none shadow-sm lg:shadow-none hover:bg-[#fcfaff] transition-colors p-4 lg:p-0"
                 >
-                  <td className="p-4 text-gray-500 font-medium">
+                  {/* FECHA */}
+                  <td className="block lg:table-cell p-2 lg:p-4 text-gray-500 font-medium border-b border-gray-50 lg:border-none relative">
+                    {/* Etiqueta visible solo en móvil */}
+                    <span className="lg:hidden font-bold text-[#40269A] uppercase text-xs block mb-1">
+                      Fecha
+                    </span>
                     {item.fechaCompraStr || item.fechaCompra}
                   </td>
-                  {/* Nota: Asumimos que al traerlo de la BD haces un .populate("alumno") y extraes el nombre */}
-                  <td className="p-4 font-bold text-[#40269A] truncate">
+
+                  {/* ALUMNO */}
+                  <td className="block lg:table-cell p-2 lg:p-4 font-bold text-[#40269A] border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Alumno
+                    </span>
                     {item.alumnoNombre || "Desconocido"}
                   </td>
-                  <td className="p-4 text-gray-700 truncate font-medium">{item.nombreMaterial}</td>
-                  <td className="p-4">
-                    <span className="bg-purple-50 text-[#40269A] px-3 py-1 rounded-full text-xs font-bold border border-purple-100">
+
+                  {/* MATERIAL */}
+                  <td className="block lg:table-cell p-2 lg:p-4 text-gray-700 font-medium border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-[#40269A] uppercase text-xs block mb-1">
+                      Material
+                    </span>
+                    {item.nombreMaterial}
+                  </td>
+
+                  {/* CATEGORÍA */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Categoría
+                    </span>
+                    <span className="bg-purple-50 text-[#40269A] px-3 py-1.5 rounded-full text-xs font-bold border border-purple-100 whitespace-nowrap inline-block text-center">
                       {item.categoria}
                     </span>
                   </td>
-                  <td className="p-4 font-black text-[#FF0188]">{item.precio}€</td>
-                  <td className="p-4 text-right">
+
+                  {/* PRECIO */}
+                  <td className="block lg:table-cell p-2 lg:p-4 font-black text-[#FF0188] border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Precio
+                    </span>
+                    {item.precio}€
+                  </td>
+
+                  {/* ACCIÓN */}
+                  <td className="block lg:table-cell p-2 lg:p-4 lg:text-right relative mt-2 lg:mt-0">
                     <button
                       onClick={() => setMaterialSeleccionado(item)}
-                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-2 rounded-xl font-bold text-xs transition-all"
+                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-3 lg:py-2 rounded-xl font-bold text-sm lg:text-xs transition-all w-full lg:w-auto"
                     >
-                      Ver
+                      Ver Detalle
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="6" className="p-12 text-center text-gray-400 font-medium">
+              <tr className="block lg:table-row">
+                <td
+                  colSpan="6"
+                  className="block lg:table-cell p-12 text-center text-gray-400 font-medium border lg:border-none rounded-xl"
+                >
                   No se ha encontrado ningún material que coincida con la búsqueda.
                 </td>
               </tr>

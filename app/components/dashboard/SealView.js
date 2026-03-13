@@ -8,7 +8,6 @@ export default function VentasView({
   manejarOrden,
   FlechaOrden,
   setVentaSeleccionada,
-  // NUEVAS PROPIEDADES AÑADIDAS AQUÍ:
   filtroCurso,
   setFiltroCurso,
   cursosUnicos,
@@ -17,18 +16,22 @@ export default function VentasView({
   return (
     <div className="animate-fadeIn">
       {/* CABECERA Y BUSCADOR */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 w-full">
         <p className="text-gray-500 font-medium">
           Registro histórico de qué curso ha comprado cada usuario.
         </p>
 
-        {/* NUEVO CONTENEDOR FLEX CON SELECT E INPUT */}
-        <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full md:w-auto">
-          <ExportButton onExportar={onExportar} />
+        {/* NUEVO CONTENEDOR FLEX CON SELECT E INPUT (Adaptado a móvil) */}
+        <div className="flex flex-col lg:flex-row gap-3 w-full md:w-auto">
+          {/* Envolvemos el botón exportar para forzar que sea ancho completo en móvil */}
+          <div className="w-full lg:w-auto flex [&>button]:w-full">
+            <ExportButton onExportar={onExportar} />
+          </div>
+
           <select
             value={filtroCurso}
             onChange={(e) => setFiltroCurso(e.target.value)}
-            className="sm:w-56 px-4 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
+            className="w-full lg:w-56 px-4 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2340269A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
               backgroundRepeat: "no-repeat",
@@ -50,15 +53,16 @@ export default function VentasView({
             placeholder="Buscar alumno, curso, fecha..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 min-w-72 px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
+            className="w-full flex-1 lg:min-w-72 px-4 py-3 border-2 border-gray-100 rounded-xl bg-[#fcfaff] text-[#40269A] font-bold focus:outline-none focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] transition-all"
           />
         </div>
       </div>
 
-      {/* TABLA DE VENTAS (Igual que antes) */}
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
-        <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
-          <thead>
+      {/* TABLA RESPONSIVA: En móvil se vuelve "Tarjetas" */}
+      <div className="rounded-xl lg:border lg:border-gray-200">
+        <table className="w-full text-left border-collapse block lg:table">
+          {/* Ocultamos thead en móvil */}
+          <thead className="hidden lg:table-header-group">
             <tr className="bg-[#fcfaff] text-[#40269A] border-b border-gray-200 select-none">
               <th
                 onClick={() => manejarOrden("fecha")}
@@ -87,21 +91,54 @@ export default function VentasView({
               <th className="p-4 font-black text-sm uppercase w-[10%] text-right">Acción</th>
             </tr>
           </thead>
-          <tbody>
+
+          <tbody className="block lg:table-row-group">
             {ventasProcesadas.length > 0 ? (
               ventasProcesadas.map((venta) => (
                 <tr
                   key={venta.id}
-                  className="border-b border-gray-100 hover:bg-[#fcfaff] transition-colors"
+                  // En móvil, cada fila es una "tarjeta" (block), con borde y sombra. En PC, fila normal.
+                  className="block lg:table-row bg-white mb-4 lg:mb-0 border border-gray-200 lg:border-b lg:border-gray-100 rounded-xl lg:rounded-none shadow-sm lg:shadow-none hover:bg-[#fcfaff] transition-colors p-4 lg:p-0"
                 >
-                  <td className="p-4 text-gray-500 font-medium">{venta.fecha}</td>
-                  <td className="p-4 font-bold text-[#40269A] truncate">{venta.alumno}</td>
-                  <td className="p-4 text-gray-700 truncate">{venta.curso}</td>
-                  <td className="p-4 font-black text-[#FF0188]">{venta.importe}</td>
-                  <td className="p-4 text-right">
+                  {/* FECHA */}
+                  <td className="block lg:table-cell p-2 lg:p-4 text-gray-500 font-medium border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-[#40269A] uppercase text-xs block mb-1">
+                      Fecha
+                    </span>
+                    {venta.fecha}
+                  </td>
+
+                  {/* ALUMNO */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Alumno
+                    </span>
+                    <div className="font-bold text-[#40269A] break-words lg:truncate">
+                      {venta.alumno}
+                    </div>
+                  </td>
+
+                  {/* CURSO ADQUIRIDO */}
+                  <td className="block lg:table-cell p-2 lg:p-4 text-gray-700 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Curso Adquirido
+                    </span>
+                    <div className="font-medium break-words lg:truncate">{venta.curso}</div>
+                  </td>
+
+                  {/* IMPORTE */}
+                  <td className="block lg:table-cell p-2 lg:p-4 font-black text-[#FF0188] border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Importe
+                    </span>
+                    {venta.importe}
+                  </td>
+
+                  {/* ACCIÓN */}
+                  <td className="block lg:table-cell p-2 lg:p-4 lg:text-right relative mt-2 lg:mt-0">
                     <button
                       onClick={() => setVentaSeleccionada(venta)}
-                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-2 rounded-xl font-bold text-xs transition-all"
+                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-3 lg:py-2 rounded-xl font-bold text-sm lg:text-xs transition-all w-full lg:w-auto text-center"
                     >
                       Ver
                     </button>
@@ -109,9 +146,12 @@ export default function VentasView({
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="5" className="p-12 text-center text-gray-400 font-medium">
-                  No se ha encontrado ninguna venta que coincida con &quot;{busqueda}&quot;.
+              <tr className="block lg:table-row">
+                <td
+                  colSpan="5"
+                  className="block lg:table-cell p-12 text-center text-gray-400 font-medium border lg:border-none rounded-xl"
+                >
+                  No se ha encontrado ninguna venta que coincida con la búsqueda.
                 </td>
               </tr>
             )}

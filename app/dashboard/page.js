@@ -33,12 +33,10 @@ export default function Dashboard() {
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
 
-  // Inicializar cargando basado en la presencia del token
   const [cargando, setCargando] = useState(
     typeof window !== "undefined" && !localStorage.getItem("crm_token")
   );
 
-  // Limpiar el buscador y el ordenamiento cada vez que cambiamos de pestaña
   useEffect(() => {
     setBusqueda("");
     setOrdenColumna(null);
@@ -52,7 +50,6 @@ export default function Dashboard() {
 
   // --- LÓGICA DE PROCESAMIENTO PARA VENTAS ---
   let ventasProcesadas = ventas.filter((v) => {
-    // 1. Filtro de Texto (Buscador general)
     const term = (busqueda || "").toLowerCase();
     const coincideTexto =
       (v.alumno || "").toLowerCase().includes(term) ||
@@ -60,10 +57,7 @@ export default function Dashboard() {
       (v.importe || "").toLowerCase().includes(term) ||
       (v.fecha || "").toLowerCase().includes(term);
 
-    // 2. Filtro Desplegable (Exacto)
     const coincideCursoVenta = filtroCursoVentas === "" || v.curso === filtroCursoVentas;
-
-    // 3. Tienen que cumplirse AMBAS condiciones
     return coincideTexto && coincideCursoVenta;
   });
 
@@ -88,7 +82,7 @@ export default function Dashboard() {
         case "importe":
           vA = parseFloat(a.importe);
           vB = parseFloat(b.importe);
-          break; // Lo pasa a número para ordenar bien
+          break;
         default:
           return 0;
       }
@@ -99,11 +93,6 @@ export default function Dashboard() {
   }
 
   // --- LÓGICA DE PROCESAMIENTO PARA ALUMNOS ---
-
-  // 1. Estado para guardar qué empresa hemos seleccionado en el desplegable
-
-  // 2. Extraer empresas únicas usando el campo 'profesion' cuando son 'Empresa'
-  // (Nota: Usamos a.perfil o a.tipoPerfil dependiendo de cómo lo mande tu API)
   const empresasUnicas = [
     ...new Set(
       alumnos
@@ -112,17 +101,13 @@ export default function Dashboard() {
     ),
   ];
 
-  // 3. Lógica de filtrado combinada (Texto + Desplegable)
   let alumnosProcesados = alumnos.filter((a) => {
-    // Filtro de texto (nombre, email, etc.)
     const term = (busqueda || "").toLowerCase();
     const coincideTexto =
       a.nombre?.toLowerCase().includes(term) ||
       a.email?.toLowerCase().includes(term) ||
       a.apellidos?.toLowerCase().includes(term);
 
-    // Filtro de empresa: Si el desplegable está vacío, pasan todos.
-    // Si tiene algo, el alumno DEBE ser de empresa y su profesión coincidir.
     const esEmpresa = a.perfil === "Empresa" || a.tipoPerfil === "Empresa";
     const coincideEmpresa = filtroEmpresa === "" || (esEmpresa && a.profesion === filtroEmpresa);
 
@@ -160,17 +145,13 @@ export default function Dashboard() {
 
   // --- LÓGICA DE PROCESAMIENTO PARA LEADS ---
   let leadsProcesados = leads.filter((l) => {
-    // 1. Filtro de Texto (Buscador general)
     const term = (busqueda || "").toLowerCase();
     const coincideTexto =
       (l.nombre || "").toLowerCase().includes(term) ||
       (l.apellidos || "").toLowerCase().includes(term) ||
       (l.email || "").toLowerCase().includes(term);
 
-    // 2. Filtro Desplegable (Cursos en Leads es un array, así que usamos .includes)
     const coincideCursoLead = filtroCursoLeads === "" || l.cursos.includes(filtroCursoLeads);
-
-    // 3. Tienen que cumplirse AMBAS condiciones
     return coincideTexto && coincideCursoLead;
   });
 
@@ -184,7 +165,6 @@ export default function Dashboard() {
           vA = a.nombre.toLowerCase();
           vB = b.nombre.toLowerCase();
           break;
-        // Para ordenar, juntamos los cursos en un solo texto separado por comas
         case "curso":
           vA = a.cursos.join(", ").toLowerCase();
           vB = b.cursos.join(", ").toLowerCase();
@@ -203,17 +183,11 @@ export default function Dashboard() {
   }
 
   // --- LÓGICA DE PROCESAMIENTO PARA MATERIALES ---
-
-  // TRUCO PRO: Si 'materiales' viene vacío de la base de datos o aún no ha cargado, usamos []
   const listadoMateriales = materiales || [];
-
-  // Ahora usamos 'listadoMateriales' que SIEMPRE será un array (seguro al 100%)
   const categoriasUnicas = [...new Set(listadoMateriales.map((m) => m.categoria).filter(Boolean))];
 
   let materialesProcesados = listadoMateriales.filter((m) => {
-    // 1. Filtro de Texto (Buscador general)
     const term = (busqueda || "").toLowerCase();
-
     const nombreDelAlumno = m.alumno?.nombre || m.alumnoNombre || "";
 
     const coincideTexto =
@@ -222,18 +196,13 @@ export default function Dashboard() {
       nombreDelAlumno.toLowerCase().includes(term) ||
       (m.precio?.toString() || "").includes(term);
 
-    // 2. Filtro Desplegable (Exacto)
     const coincideCategoria = filtroCategoria === "" || m.categoria === filtroCategoria;
-
-    // 3. Tienen que cumplirse AMBAS condiciones
     return coincideTexto && coincideCategoria;
   });
 
-  // --- LÓGICA DE ORDENAMIENTO ---
   if (ordenColumna && vistaActiva === "materiales") {
     materialesProcesados.sort((a, b) => {
       let vA, vB;
-
       switch (ordenColumna) {
         case "nombreMaterial":
           vA = (a.nombreMaterial || "").toLowerCase();
@@ -244,50 +213,36 @@ export default function Dashboard() {
           vB = (b.categoria || "").toLowerCase();
           break;
         case "alumnoNombre":
-          // Cuidado con cómo viene de la base de datos
           vA = (a.alumno?.nombre || a.alumnoNombre || "").toLowerCase();
           vB = (b.alumno?.nombre || b.alumnoNombre || "").toLowerCase();
           break;
-
-        // NUEVO: Ordenar por PRECIO (como son números, no usamos toLowerCase)
         case "precio":
           vA = Number(a.precio || 0);
           vB = Number(b.precio || 0);
           break;
-
-        // NUEVO: Ordenar por FECHA (las convertimos a milisegundos para compararlas matemáticamente)
         case "fechaCompra":
           vA = new Date(a.fechaCompra).getTime();
           vB = new Date(b.fechaCompra).getTime();
           break;
-
         default:
           return 0;
       }
-
       if (vA < vB) return ordenAscendente ? -1 : 1;
       if (vA > vB) return ordenAscendente ? 1 : -1;
       return 0;
     });
   }
-  const handleUpdateEstado = async (id, nuevoEstado) => {
-    // 1. ACTUALIZACIÓN OPTIMISTA: Cambiamos el estado en pantalla al instante
-    // para que el usuario no note ningún "lag" mientras el servidor piensa.
-    setLeads(leads.map((lead) => (lead.id === id ? { ...lead, estado: nuevoEstado } : lead)));
 
-    // 2. ACTUALIZACIÓN REAL (Base de datos)
+  const handleUpdateEstado = async (id, nuevoEstado) => {
+    setLeads(leads.map((lead) => (lead.id === id ? { ...lead, estado: nuevoEstado } : lead)));
     try {
       const response = await fetch(`/api/leads/${id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
-
       if (!response.ok) {
         console.error("Error al guardar en la base de datos");
-        // Opcional: Si falla, podrías volver a poner el estado anterior aquí
       }
     } catch (error) {
       console.error("Error de conexión:", error);
@@ -322,31 +277,25 @@ export default function Dashboard() {
       const token = localStorage.getItem("crm_token");
       const emailGuardado = localStorage.getItem("crm_email");
 
-      // 1. Control de seguridad
       if (!token) {
         router.push("/");
         return;
       }
       if (emailGuardado) setUsuarioEmail(emailGuardado);
 
-      // 2. Llamada a tu nueva API
       try {
         const res = await fetch("/api/dashboard", {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`, // Le pasamos el token por seguridad
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.ok) {
           const data = await res.json();
-          // 3. ¡Inyectamos los datos reales en el Dashboard!
           setLeads(data.leads);
           setAlumnos(data.alumnos);
           setVentas(data.ventas);
           setMateriales(data.materiales);
         } else {
-          // Si el token ha caducado o hay un error, le echamos al login
           if (res.status === 401) {
             localStorage.removeItem("crm_token");
             router.push("/");
@@ -358,7 +307,6 @@ export default function Dashboard() {
         setCargando(false);
       }
     };
-
     cargarDatos();
   }, [router]);
 
@@ -398,30 +346,28 @@ export default function Dashboard() {
         handleLogout={handleLogout}
       />
 
-      {/* ÁREA PRINCIPAL */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="bg-white p-8 shadow-sm flex justify-between items-center z-0 shrink-0 border-b border-gray-100">
-          <h1 className="text-3xl font-black text-[#40269A] tracking-tight">
+        {/* MAGIA RESPONSIVA EN LA CABECERA */}
+        <header className="bg-white py-5 px-4 pl-16 md:p-8 md:pl-8 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 z-0 shrink-0 border-b border-gray-100">
+          <h1 className="text-xl md:text-3xl font-black text-[#40269A] tracking-tight">
             {vistaActiva === "estadisticas" && "Análisis y Rendimiento"}
             {vistaActiva === "leads" && "Gestión de Prospectos"}
             {vistaActiva === "alumnos" && "Directorio de Alumnos"}
             {vistaActiva === "ventas" && "Historial de Ventas"}
+            {vistaActiva === "materiales" && "Ventas de Materiales"}
           </h1>
-          <div className="text-sm font-bold text-[#40269A] bg-[#DEC7FF]/30 px-6 py-3 rounded-full border border-[#C49DFF]/50">
+          <div className="text-xs md:text-sm font-bold text-[#40269A] bg-[#DEC7FF]/30 px-4 py-2 md:px-6 md:py-3 rounded-full border border-[#C49DFF]/50 max-w-full truncate">
             {usuarioEmail || "Cargando..."}
           </div>
         </header>
 
-        <div className="p-8 flex-1 overflow-y-auto bg-gradient-to-br from-[#fcfaff] to-[#DEC7FF]/10">
-          <div className="bg-white p-8 lg:p-12 rounded-[2rem] shadow-xl border-t-[8px] border-[#FFDAED] min-h-full relative">
-            {/* VISTA ESTADÍSTICAS */}
+        {/* MAGIA RESPONSIVA EN EL CONTENEDOR PRINCIPAL */}
+        <div className="p-4 md:p-8 flex-1 overflow-y-auto bg-gradient-to-br from-[#fcfaff] to-[#DEC7FF]/10">
+          <div className="bg-white p-5 md:p-8 lg:p-12 rounded-[2rem] shadow-xl border-t-[8px] border-[#FFDAED] min-h-full relative overflow-x-hidden">
             {vistaActiva === "estadisticas" && (
               <StatsView leads={leads} alumnos={alumnos} ventas={ventas} />
             )}
 
-            {/* ========================================================= */}
-            {/* VISTA LEADS COMPLETADA CON BUSCADOR Y ORDENACIÓN */}
-            {/* ========================================================= */}
             {vistaActiva === "leads" && (
               <LeadsView
                 busqueda={busqueda}
@@ -438,9 +384,6 @@ export default function Dashboard() {
               />
             )}
 
-            {/* ========================================================= */}
-            {/* VISTA ALUMNOS (Mantenemos la que ya funcionaba perfecta) */}
-            {/* ========================================================= */}
             {vistaActiva === "alumnos" && (
               <StudentView
                 busqueda={busqueda}
@@ -458,9 +401,6 @@ export default function Dashboard() {
               />
             )}
 
-            {/* ========================================================= */}
-            {/* VISTA VENTAS COMPLETADA CON BUSCADOR Y ORDENACIÓN */}
-            {/* ========================================================= */}
             {vistaActiva === "ventas" && (
               <VentasView
                 busqueda={busqueda}
@@ -476,9 +416,6 @@ export default function Dashboard() {
               />
             )}
 
-            {/* ========================================================= */}
-            {/* VISTA MATERIALES COMPLETADA CON BUSCADOR Y ORDENACIÓN */}
-            {/* ========================================================= */}
             {vistaActiva === "materiales" && (
               <MaterialView
                 busqueda={busqueda}
@@ -499,18 +436,13 @@ export default function Dashboard() {
         </div>
       </main>
 
-      {/* ========================================================= */}
-      {/* VENTANA MODAL 1: FICHA DE ALUMNO (La que ya teníamos) */}
-      {/* ========================================================= */}
+      {/* MODALES */}
       <StudentModal
         alumno={alumnoSeleccionado}
         onClose={() => setAlumnoSeleccionado(null)}
         getBadgeColor={getBadgeColor}
       />
 
-      {/* ========================================================= */}
-      {/* VENTANA MODAL 2: FICHA DE LEAD (Nueva, enfocada a ventas) */}
-      {/* ========================================================= */}
       <LeadModal
         lead={leadSeleccionado}
         onClose={() => setLeadSeleccionado(null)}
@@ -518,14 +450,8 @@ export default function Dashboard() {
         onUpdateEstado={handleUpdateEstado}
       />
 
-      {/* ========================================================= */}
-      {/* VENTANA MODAL 3: RECIBO DE VENTA */}
-      {/* ========================================================= */}
       <SealModal seal={ventaSeleccionada} onClose={() => setVentaSeleccionada(null)} />
 
-      {/* ========================================================= */}
-      {/* VENTANA MODAL 3: FICHA DE MATERIAL */}
-      {/* ========================================================= */}
       <MaterialModal
         material={materialSeleccionado}
         onClose={() => setMaterialSeleccionado(null)}

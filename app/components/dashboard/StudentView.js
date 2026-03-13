@@ -17,14 +17,15 @@ export default function AlumnosView({
 }) {
   return (
     <div className="animate-fadeIn">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 w-full">
         <p className="text-gray-500 font-medium">
           Usuarios registrados en la plataforma con perfil completo.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3">
+
+        <div className="flex flex-col lg:flex-row gap-3 w-full md:w-auto">
           <button
             onClick={() => setMostrarModalImportar(true)}
-            className="flex items-center justify-center gap-2 bg-[#40269A] hover:bg-[#2c1a6b] text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0 cursor-pointer"
+            className="flex items-center justify-center gap-2 bg-[#40269A] hover:bg-[#2c1a6b] text-white px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0 cursor-pointer w-full lg:w-auto"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -42,12 +43,15 @@ export default function AlumnosView({
             </svg>
             Importar por Empresa
           </button>
-          <ExportButton onExportar={onExportar} />
+
+          <div className="w-full lg:w-auto flex [&>button]:w-full">
+            <ExportButton onExportar={onExportar} />
+          </div>
+
           <select
             value={filtroEmpresa}
             onChange={(e) => setFiltroEmpresa(e.target.value)}
-            // Cambiamos sm:w-64 por sm:w-48 (más estrecho) o sm:w-1/4
-            className="sm:w-58 px-5 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
+            className="w-full lg:w-48 px-5 py-3 rounded-xl border-2 border-[#DEC7FF] bg-white text-[#40269A] font-bold focus:border-[#40269A] focus:ring-4 focus:ring-[#DEC7FF]/50 outline-none transition-all cursor-pointer appearance-none shadow-sm shrink-0"
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2340269A'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
               backgroundRepeat: "no-repeat",
@@ -69,15 +73,16 @@ export default function AlumnosView({
             placeholder="Buscar por nombre o email..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            // Mantenemos flex-1 y añadimos w-full por si acaso
-            className="flex-1 min-w-72 px-5 py-3 rounded-xl border-2 border-gray-100 focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] outline-none transition-all font-medium text-gray-700 placeholder:text-gray-400"
+            className="w-full flex-1 lg:min-w-72 px-5 py-3 rounded-xl border-2 border-gray-100 focus:border-[#FF0188] focus:ring-4 focus:ring-[#FFDAED] outline-none transition-all font-medium text-gray-700 placeholder:text-gray-400"
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
-        <table className="w-full text-left border-collapse table-fixed min-w-[800px]">
-          <thead>
+      {/* TABLA RESPONSIVA: En móvil se vuelve "Tarjetas" */}
+      <div className="rounded-xl lg:border lg:border-gray-200">
+        <table className="w-full text-left border-collapse block lg:table">
+          {/* Ocultamos thead en móvil */}
+          <thead className="hidden lg:table-header-group">
             <tr className="bg-[#fcfaff] text-[#40269A] border-b border-gray-200 select-none">
               <th
                 onClick={() => manejarOrden("usuario")}
@@ -106,44 +111,77 @@ export default function AlumnosView({
               <th className="p-4 font-black text-sm uppercase w-[15%] text-right">Acción</th>
             </tr>
           </thead>
-          <tbody>
+
+          <tbody className="block lg:table-row-group">
             {alumnosProcesados.length > 0 ? (
               alumnosProcesados.map((alumno) => (
                 <tr
                   key={alumno.id}
-                  className="border-b border-gray-100 hover:bg-[#fcfaff] transition-colors"
+                  // En móvil, cada fila es una "tarjeta" (block)
+                  className="block lg:table-row bg-white mb-4 lg:mb-0 border border-gray-200 lg:border-b lg:border-gray-100 rounded-xl lg:rounded-none shadow-sm lg:shadow-none hover:bg-[#fcfaff] transition-colors p-4 lg:p-0"
                 >
-                  <td className="p-4">
-                    <div className="font-bold text-[#40269A] truncate">@{alumno.username}</div>
-                    <div className="text-xs text-gray-400 truncate">{alumno.email}</div>
+                  {/* USUARIO Y EMAIL */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Usuario / Email
+                    </span>
+                    <div className="font-bold text-[#40269A] break-words lg:truncate">
+                      @{alumno.username}
+                    </div>
+                    <div className="text-xs text-gray-400 break-words lg:truncate">
+                      {alumno.email}
+                    </div>
                   </td>
-                  <td className="p-4">
+
+                  {/* NOMBRE REAL */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Nombre Real
+                    </span>
                     <div className="font-bold text-[#40269A]">
-                      {/* Si no hay nombre ni apellidos, mostramos "Sin nombre" o un guion */}
                       {alumno.nombre || alumno.apellidos
                         ? `${alumno.nombre || ""} ${alumno.apellidos || ""}`.trim()
                         : "—"}
                     </div>
                   </td>
-                  <td className="p-4">
+
+                  {/* PERFIL */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Perfil
+                    </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${getBadgeColor(alumno.perfil)}`}
+                      className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getBadgeColor(alumno.perfil)}`}
                     >
                       {alumno.perfil}
                     </span>
-                    <div className="text-xs text-gray-400 mt-1 truncate">{alumno.profesion}</div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex justify-center">
-                      <div
-                        className={`w-3 h-3 rounded-full ${alumno.activo ? "bg-green-500" : "bg-red-500"}`}
-                      ></div>
+                    <div className="text-xs text-gray-400 mt-1 break-words lg:truncate">
+                      {alumno.profesion}
                     </div>
                   </td>
-                  <td className="p-4 text-right">
+
+                  {/* ACTIVO */}
+                  <td className="block lg:table-cell p-2 lg:p-4 border-b border-gray-50 lg:border-none relative">
+                    <span className="lg:hidden font-bold text-gray-400 uppercase text-xs block mb-1">
+                      Estado de Cuenta
+                    </span>
+                    {/* En PC se centra, en móvil a la izquierda con texto */}
+                    <div className="flex justify-start lg:justify-center items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full shrink-0 ${alumno.activo ? "bg-green-500" : "bg-red-500"}`}
+                      ></div>
+                      {/* Texto explicativo solo para móviles */}
+                      <span className="lg:hidden text-sm font-bold text-gray-600">
+                        {alumno.activo ? "Activa" : "Inactiva"}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* ACCIÓN */}
+                  <td className="block lg:table-cell p-2 lg:p-4 lg:text-right relative mt-2 lg:mt-0">
                     <button
                       onClick={() => setAlumnoSeleccionado(alumno)}
-                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-2 rounded-xl font-bold text-xs transition-all"
+                      className="text-[#40269A] bg-[#DEC7FF]/30 hover:bg-[#C49DFF] hover:text-white px-4 py-3 lg:py-2 rounded-xl font-bold text-sm lg:text-xs transition-all w-full lg:w-auto text-center"
                     >
                       Ver Ficha
                     </button>
@@ -151,8 +189,11 @@ export default function AlumnosView({
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="5" className="p-12 text-center text-gray-400 font-medium">
+              <tr className="block lg:table-row">
+                <td
+                  colSpan="5"
+                  className="block lg:table-cell p-12 text-center text-gray-400 font-medium border lg:border-none rounded-xl"
+                >
                   No se ha encontrado ningún alumno.
                 </td>
               </tr>
